@@ -5,8 +5,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-	"image"
-	"image/color"
 	_ "image/png"
 	"log"
 	"os"
@@ -17,15 +15,9 @@ const (
 	screenWidth  = 480
 	screenHeight = 320
 
-	gridSize   = 20
+	gridSize   = 16
 	worldSizeX = screenWidth / gridSize
 	worldSizeY = screenHeight / gridSize
-
-	frameOX     = 0
-	frameOY     = 0
-	frameWidth  = 48
-	frameHeight = 48
-	frameCount  = 6
 )
 
 const (
@@ -37,7 +29,6 @@ const (
 )
 
 var (
-	playerSprite  *ebiten.Image
 	gameMapSprite *ebiten.Image
 )
 
@@ -84,28 +75,6 @@ func (g *Game) Update() error {
 	return nil
 }
 
-func (g *Game) drawMap(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0, 0, 0, 0xff})
-	for _, row := range g.gameMap.Tiles {
-		for _, tile := range row {
-			op := &ebiten.DrawImageOptions{}
-			op.GeoM.Translate(tile.Position.X*16, tile.Position.Y*16)
-			screen.DrawImage(gameMapSprite, op)
-		}
-	}
-}
-
-func (g *Game) drawPlayer(screen *ebiten.Image) {
-	op := &ebiten.DrawImageOptions{}
-
-	op.GeoM.Translate(float64(g.player.Position.X)*gridSize, float64(g.player.Position.Y)*gridSize)
-
-	i := (g.timer / 6) % frameCount
-	sx, sy := frameOX+i*frameWidth, frameOY
-
-	screen.DrawImage(playerSprite.SubImage(image.Rect(sx, sy, sx+frameWidth, sy+frameHeight)).(*ebiten.Image), op)
-}
-
 func (g *Game) drawDebugInfo(screen *ebiten.Image) {
 	worldX, worldY := g.camera.ScreenToWorld(ebiten.CursorPosition())
 	ebitenutil.DebugPrint(
@@ -128,6 +97,7 @@ func (g *Game) needsToMovePlayer() bool {
 }
 
 func (g *Game) collidesWithWall() bool {
+	fmt.Println(g.world.Size())
 	return false
 }
 
@@ -177,8 +147,8 @@ func (g *Game) exit() {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.drawMap(g.world)
-	g.drawPlayer(g.world)
+	g.gameMap.Draw(g.world)
+	g.player.Draw(g.world, g.timer)
 
 	g.camera.Render(g.world, screen)
 
@@ -190,45 +160,34 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func main() {
-	playerImage, _, err := ebitenutil.NewImageFromFile("assets/sprites/characters/player.png")
-	mapImage, _, err := ebitenutil.NewImageFromFile("assets/sprites/tilesets/grass.png")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	playerSprite = ebiten.NewImageFromImage(playerImage)
-	gameMapSprite = ebiten.NewImageFromImage(mapImage)
-
 	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
 
 	ebiten.SetWindowTitle("RPG")
 
 	player := rpg.Player{
 		Position: rpg.Vector2{
-			X: 10,
-			Y: 7,
+			X: (worldSizeX / 2) - 1,
+			Y: (worldSizeY / 2) - 1,
 		},
 	}
 
 	gameMap := rpg.GameMap{
-		MapSizeX: 60,
-		MapSizeY: 40,
-		//Tiles: [][]rpg.Tile{
-		//	{
-		//		rpg.Tile{Id: 1}, rpg.Tile{Id: 1}, rpg.Tile{Id: 1},
-		//		rpg.Tile{Id: 1}, rpg.Tile{Id: 1}, rpg.Tile{Id: 1},
-		//		rpg.Tile{Id: 1}, rpg.Tile{Id: 1}, rpg.Tile{Id: 1},
-		//	},
-		//},
+		MapSizeX: 30,
+		MapSizeY: 20,
 	}
 
+	camera := rpg.Camera{
+		ViewPort: rpg.Vector2{X: screenWidth, Y: screenHeight},
+	}
+
+	player.Init()
 	gameMap.Init()
 
 	game := &Game{
 		moveTime: 5,
 		player:   player,
 		gameMap:  gameMap,
+		camera:   camera,
 	}
 
 	game.world = ebiten.NewImage(gameMap.MapSizeX*16, gameMap.MapSizeY*16)

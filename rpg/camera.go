@@ -15,29 +15,30 @@ type Camera struct {
 
 func (c *Camera) String() string {
 	return fmt.Sprintf(
-		"T: %.1f, R: %d, S: %d",
+		"CAM: %.1f, R: %d, S: %d",
 		c.Position, c.Rotation, c.ZoomFactor,
 	)
 }
 
 func (c *Camera) viewportCenter() Vector2 {
+	//return Vector2{
+	//	X: c.ViewPort.X * .5,
+	//	Y: c.ViewPort.Y * .5,
+	//}
 	return Vector2{
-		X: c.ViewPort.X * 0.5,
-		Y: c.ViewPort.Y * 0.5,
+		X: 0,
+		Y: 0,
 	}
 }
 
 func (c *Camera) worldMatrix() ebiten.GeoM {
 	m := ebiten.GeoM{}
 	m.Translate(-c.Position.X, -c.Position.Y)
-	// We want to scale and rotate around center of image / screen
 	m.Translate(-c.viewportCenter().X, -c.viewportCenter().Y)
-	m.Scale(
-		math.Pow(1.01, float64(c.ZoomFactor)),
-		math.Pow(1.01, float64(c.ZoomFactor)),
-	)
-	m.Rotate(float64(c.Rotation) * 2 * math.Pi / 360)
-	m.Translate(c.viewportCenter().X, c.viewportCenter().Y)
+	//m.Scale(
+	//	math.Pow(1.01, float64(c.ZoomFactor)),
+	//	math.Pow(1.01, float64(c.ZoomFactor)),
+	//)
 	return m
 }
 
