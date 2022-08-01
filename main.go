@@ -97,7 +97,6 @@ func (g *Game) needsToMovePlayer() bool {
 }
 
 func (g *Game) collidesWithWall() bool {
-	fmt.Println(g.world.Size())
 	return false
 }
 
@@ -172,8 +171,19 @@ func main() {
 	}
 
 	gameMap := rpg.GameMap{
-		MapSizeX: 30,
-		MapSizeY: 20,
+		MapSizeX: 10,
+		MapSizeY: 10,
+		Tiles: [][]rpg.Tile{
+			{
+				rpg.Tile{Id: 1, Position: rpg.Vector2{X: 1.0, Y: 0.0}}, rpg.Tile{Id: 2, Position: rpg.Vector2{X: 2.0, Y: 0.0}}, rpg.Tile{Id: 3, Position: rpg.Vector2{X: 3.0, Y: 0.0}},
+				rpg.Tile{Id: 7, Position: rpg.Vector2{X: 1.0, Y: 1.0}}, rpg.Tile{Id: 8, Position: rpg.Vector2{X: 2.0, Y: 1.0}}, rpg.Tile{Id: 9, Position: rpg.Vector2{X: 3.0, Y: 1.0}},
+				rpg.Tile{Id: 7, Position: rpg.Vector2{X: 1.0, Y: 2.0}}, rpg.Tile{Id: 8, Position: rpg.Vector2{X: 2.0, Y: 2.0}}, rpg.Tile{Id: 9, Position: rpg.Vector2{X: 3.0, Y: 2.0}},
+				rpg.Tile{Id: 7, Position: rpg.Vector2{X: 1.0, Y: 3.0}}, rpg.Tile{Id: 8, Position: rpg.Vector2{X: 2.0, Y: 3.0}}, rpg.Tile{Id: 9, Position: rpg.Vector2{X: 3.0, Y: 3.0}},
+				rpg.Tile{Id: 7, Position: rpg.Vector2{X: 1.0, Y: 4.0}}, rpg.Tile{Id: 8, Position: rpg.Vector2{X: 2.0, Y: 4.0}}, rpg.Tile{Id: 9, Position: rpg.Vector2{X: 3.0, Y: 4.0}},
+				rpg.Tile{Id: 7, Position: rpg.Vector2{X: 1.0, Y: 5.0}}, rpg.Tile{Id: 8, Position: rpg.Vector2{X: 2.0, Y: 5.0}}, rpg.Tile{Id: 9, Position: rpg.Vector2{X: 3.0, Y: 5.0}},
+				rpg.Tile{Id: 13, Position: rpg.Vector2{X: 1.0, Y: 6.0}}, rpg.Tile{Id: 14, Position: rpg.Vector2{X: 2.0, Y: 6.0}}, rpg.Tile{Id: 15, Position: rpg.Vector2{X: 3.0, Y: 6.0}},
+			},
+		},
 	}
 
 	camera := rpg.Camera{
