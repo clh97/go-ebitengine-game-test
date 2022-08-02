@@ -166,20 +166,21 @@ func (gm *GameMap) readMap() (tiles []Tile, width, height int) {
 	width = result.Width
 	height = result.Height
 
-	gameMap := result.Layers[0]
-	yIndex := 0
-	xIndex := 0
-	for i, tileId := range gameMap.Data {
-		xIndex = i % width
+	for _, layer := range result.Layers {
+		yIndex := 0
+		xIndex := 0
+		for i, tileId := range layer.Data {
+			xIndex = i % width
 
-		fmt.Println(i, width, i%width == 0)
+			fmt.Println(i, width, i%width == 0)
 
-		if i%width == 0 {
-			xIndex = 0
-			yIndex++
+			if i%width == 0 {
+				xIndex = 0
+				yIndex++
+			}
+
+			tiles = append(tiles, Tile{Id: tileId - 1, Position: Vector2{X: float64(xIndex), Y: float64(yIndex - 1)}})
 		}
-
-		tiles = append(tiles, Tile{Id: tileId - 1, Position: Vector2{X: float64(xIndex), Y: float64(yIndex - 1)}})
 	}
 
 	return tiles, width, height
