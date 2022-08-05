@@ -2,7 +2,6 @@ package rpg
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"golang.org/x/image/math/f64"
@@ -20,7 +19,7 @@ const (
 
 type Tile struct {
 	Id       int
-	Position Vector2
+	Position Position
 }
 
 type GameMap struct {
@@ -73,7 +72,6 @@ type TiledMap struct {
 }
 
 func (gm *GameMap) Init() {
-	// w6 h8
 	mapImage, _, err := ebitenutil.NewImageFromFile("assets/sprites/tilesets/plains.png")
 
 	if err != nil {
@@ -89,24 +87,6 @@ func (gm *GameMap) Init() {
 	gm.Tiles = [][]Tile{
 		tiles,
 	}
-
-	//gm.Tiles = make([][]Tile, gm.MapSizeY)
-
-	//for i := range gm.Tiles {
-	//	gm.Tiles[i] = make([]Tile, gm.MapSizeX)
-	//}
-
-	//for y := 0; y < gm.MapSizeY; y++ {
-	//	for x := 0; x < gm.MapSizeX; x++ {
-	//		gm.Tiles[y][x] = Tile{
-	//			Id: 1,
-	//			Position: Vector2{
-	//				X: float64(x),
-	//				Y: float64(y),
-	//			},
-	//		}
-	//	}
-	//}
 }
 
 func (gm *GameMap) getSpriteCoordsById(id int) (coords f64.Vec4) {
@@ -130,7 +110,18 @@ func (gm *GameMap) Draw(screen *ebiten.Image) {
 	for _, row := range gm.Tiles {
 		for _, tile := range row {
 			op := &ebiten.DrawImageOptions{}
-			op.GeoM.Translate(tile.Position.X*16, tile.Position.Y*16)
+			op.GeoM.Translate(float64(tile.Position.X+1)*16, float64(tile.Position.Y+1)*16)
+
+			if tile.Id == 48 {
+				emptyImage := ebiten.NewImage(16, 16)
+				op := &ebiten.DrawImageOptions{}
+				op.ColorM.ScaleWithColor(color.Black)
+				// Filter must be 'nearest' filter (default).
+				// Linear filtering would make edges blurred.
+				screen.DrawImage(emptyImage.SubImage(image.Rect(tile.Position.X, tile.Position.Y, tile.Position.X*16, tile.Position.Y*16)).(*ebiten.Image), op)
+				return
+			}
+
 			spriteCoords := gm.getSpriteCoordsById(tile.Id)
 
 			screen.DrawImage(
@@ -146,6 +137,17 @@ func (gm *GameMap) Draw(screen *ebiten.Image) {
 			)
 		}
 	}
+}
+
+func (gm *GameMap) TilesAt(x, y int) (tiles []Tile) {
+	for _, layer := range gm.Tiles {
+		for _, tile := range layer {
+			if tile.Position.X == x && tile.Position.Y == y {
+				tiles = append(tiles, tile)
+			}
+		}
+	}
+	return tiles
 }
 
 func (gm *GameMap) readMap() (tiles []Tile, width, height int) {
@@ -168,18 +170,15 @@ func (gm *GameMap) readMap() (tiles []Tile, width, height int) {
 
 	for _, layer := range result.Layers {
 		yIndex := 0
-		xIndex := 0
 		for i, tileId := range layer.Data {
-			xIndex = i % width
-
-			fmt.Println(i, width, i%width == 0)
+			xIndex := i % width
 
 			if i%width == 0 {
 				xIndex = 0
 				yIndex++
 			}
 
-			tiles = append(tiles, Tile{Id: tileId - 1, Position: Vector2{X: float64(xIndex), Y: float64(yIndex - 1)}})
+			tiles = append(tiles, Tile{Id: tileId - 1, Position: Position{X: xIndex, Y: yIndex}})
 		}
 	}
 

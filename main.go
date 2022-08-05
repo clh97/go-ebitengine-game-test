@@ -48,27 +48,32 @@ type Game struct {
 
 func (g *Game) Update() error {
 	g.timer++
+	g.timer %= 240
 
 	g.handleInput()
 
 	if g.needsToMovePlayer() {
-		if g.collidesWithWall() {
-			fmt.Println("Colliding with wall")
-		}
-
 		switch g.moveDirection {
 		case dirLeft:
-			g.player.Position.X--
-			g.camera.Position.X -= gridSize
+			if !g.collidesWithWall() {
+				g.player.Move(-1, 0)
+				g.camera.Position.X -= gridSize
+			}
 		case dirRight:
-			g.player.Position.X++
-			g.camera.Position.X += gridSize
+			if !g.collidesWithWall() {
+				g.player.Move(1, 0)
+				g.camera.Position.X += gridSize
+			}
 		case dirUp:
-			g.player.Position.Y--
-			g.camera.Position.Y -= gridSize
+			if !g.collidesWithWall() {
+				g.player.Move(0, -1)
+				g.camera.Position.Y -= gridSize
+			}
 		case dirDown:
-			g.player.Position.Y++
-			g.camera.Position.Y += gridSize
+			if !g.collidesWithWall() {
+				g.player.Move(0, 1)
+				g.camera.Position.Y += gridSize
+			}
 		}
 	}
 
@@ -97,6 +102,28 @@ func (g *Game) needsToMovePlayer() bool {
 }
 
 func (g *Game) collidesWithWall() bool {
+	switch g.moveDirection {
+	//case dirLeft:
+	//
+	//case dirRight:
+
+	case dirUp:
+		nextTiles := g.gameMap.TilesAt(g.player.Position.X, g.player.Position.Y)
+		for _, tile := range nextTiles {
+			if tile.Id == 48 {
+				return true
+			}
+		}
+		return false
+	case dirDown:
+		nextTiles := g.gameMap.TilesAt(g.player.Position.X, g.player.Position.Y+1)
+		for _, tile := range nextTiles {
+			if tile.Id == 48 {
+				return true
+			}
+		}
+		return false
+	}
 	return false
 }
 
@@ -162,9 +189,11 @@ func main() {
 	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
 
 	ebiten.SetWindowTitle("RPG")
+	ebiten.SetFPSMode(ebiten.FPSModeVsyncOn)
+	ebiten.SetMaxTPS(60)
 
 	player := rpg.Player{
-		Position: rpg.Vector2{
+		Position: rpg.Position{
 			X: (worldSizeX / 2) - 1,
 			Y: (worldSizeY / 2) - 1,
 		},

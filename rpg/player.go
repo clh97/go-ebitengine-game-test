@@ -20,7 +20,7 @@ const (
 )
 
 type Player struct {
-	Position Vector2
+	Position Position
 
 	sprite *ebiten.Image
 }
@@ -37,15 +37,23 @@ func (p *Player) Init() {
 
 func (p *Player) String() string {
 	return fmt.Sprintf(
-		"P: %.1f, Y: %.1f",
+		"P: %d, Y: %d",
 		p.Position.X, p.Position.Y,
 	)
+}
+
+func (p *Player) Move(x, y int) {
+	nextPosX := p.Position.X + x
+	nextPosY := p.Position.Y + y
+
+	p.Position.X = nextPosX
+	p.Position.Y = nextPosY
 }
 
 func (p *Player) Draw(screen *ebiten.Image, timer int) {
 	op := &ebiten.DrawImageOptions{}
 
-	op.GeoM.Translate(float64(p.Position.X)*GridSize-(playerSize/2), float64(p.Position.Y)*GridSize-playerSize)
+	op.GeoM.Translate(float64(p.Position.X)*GridSize, float64(p.Position.Y)*GridSize)
 
 	i := (timer / 6) % frameCount
 	sx, sy := frameOX+i*frameWidth, frameOY
